@@ -1,0 +1,176 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --bg-0: #0A0A0A;
+  --bg-1: #141210;
+  --bg-2: #1B1815;
+  --gold: #C5A059;
+  --gold-dim: #8A7548;
+  --green: #6C873B;
+  --green-light: #8CAA55;
+  --ivory: #F3EFE6;
+  --muted: #8C877D;
+  --line: #2A2620;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 132px;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--ivory);
+  font-family: 'Manrope', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.font-serif-display {
+  font-family: 'Fraunces', serif;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
+
+.texture {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(197,160,89,0.06), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(108,135,59,0.05), transparent 45%);
+}
+
+.nav-pill {
+  white-space: nowrap;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: all .25s ease;
+}
+
+.nav-pill.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #141210;
+  font-weight: 700;
+}
+
+.dish-card {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  transition: border-color .25s ease, transform .25s ease;
+}
+
+.dish-card:active {
+  transform: scale(0.98);
+}
+
+.badge-custom {
+  background: rgba(108,135,59,0.15);
+  border: 1px solid rgba(108,135,59,0.5);
+  color: var(--green-light);
+}
+
+.badge-signature {
+  background: rgba(197,160,89,0.12);
+  border: 1px solid rgba(197,160,89,0.5);
+  color: var(--gold);
+}
+
+.btn-add {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  transition: all .25s ease;
+}
+
+.btn-add:hover {
+  background: var(--gold);
+  color: #141210;
+  border-color: var(--gold);
+}
+
+.btn-custom {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green-light);
+  transition: all .25s ease;
+}
+
+.btn-custom:hover {
+  background: var(--green);
+  color: #0A0A0A;
+}
+
+.qty-stepper {
+  background: var(--green);
+  color: #0A0A0A;
+}
+
+#cart-bar {
+  transform: translateY(140%);
+  transition: transform .35s cubic-bezier(.2, .9, .3, 1.2);
+}
+
+#cart-bar.show {
+  transform: translateY(0);
+}
+
+#cart-panel, #protein-modal {
+  transform: translateY(100%);
+  transition: transform .35s ease;
+}
+
+#cart-panel.open, #protein-modal.open {
+  transform: translateY(0);
+}
+
+.divider-dotted {
+  border-bottom: 1px dotted var(--line);
+}
+
+.hero-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 2px);
+  pointer-events: none;
+}
+
+.protein-pill {
+  border: 1px solid var(--line);
+  color: var(--ivory);
+  background: var(--bg-2);
+  transition: all .2s ease;
+}
+
+.protein-pill.selected {
+  background: var(--green);
+  border-color: var(--green);
+  color: #0A0A0A;
+  font-weight: 700;
+}
+
+.contact-card {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+}
+
+.social-btn {
+  border: 1px solid var(--line);
+  color: var(--ivory);
+  transition: all .2s ease;
+}
+
+.social-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
