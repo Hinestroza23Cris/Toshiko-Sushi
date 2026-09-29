@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { Lock, Plus, Trash2, Edit3, ArrowLeft, X, Image as ImageIcon } from 'lucide-react';
+import { Lock, Plus, Trash2, Edit3, ArrowLeft, X, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -27,8 +27,9 @@ export default function AdminPage() {
 
   const [productos, setProductos] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Formulario para crear / editar producto (con imagen_url incluido)
+  // Formulario para crear / editar producto
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
     nombre: '',
@@ -58,6 +59,41 @@ export default function AdminPage() {
     if (error) console.error('Error:', error);
     else if (data) setProductos(data);
     setLoading(false);
+  };
+
+  // Función para subir la foto directamente desde la galería a Supabase Storage
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      setUploadingImage(true);
+
+      // Subir archivo al bucket 'productos'
+      const { error: uploadError } = await supabase.storage
+        .from('productos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Obtener la URL pública del archivo subido
+      const { data } = supabase.storage
+        .from('productos')
+        .getPublicUrl(filePath);
+
+      setForm((prev) => ({ ...prev, imagen_url: data.publicUrl }));
+    } catch (error: any) {
+      alert('Error al subir la imagen. Asegúrate de haber creado el bucket "productos" como Público en Supabase.');
+      console.error(error);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const guardarProducto = async (e: React.FormEvent) => {
@@ -96,10 +132,10 @@ export default function AdminPage() {
       descripcion: prod.descripcion || '',
       precio: prod.precio.toString(),
       categoria: prod.categoria || 'Sushi',
-      imagen_url: prod.imagen_url || '', // ¡Aquí estaba el detalle! Ahora carga la imagen existente
+      imagen_url: prod.imagen_url || '',
       max_proteinas: (prod.max_proteinas || 2).toString()
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube suavemente al formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const eliminarProducto = async (id: number) => {
@@ -268,18 +304,58 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="md:col-span-2 space-y-1.5">
+            {/* SECCIÓN MEJORADA DE IMAGEN: Subida desde galería + Vista previa */}
+            <div className="md:col-span-2 space-y-2">
               <label className="text-[11px] text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                 <ImageIcon className="w-3.5 h-3.5 text-[#8b9e69]" />
-                <span>URL de la Imagen (Opcional)</span>
+                <span>Foto del Plato</span>
               </label>
-              <input 
-                type="url"
-                value={form.imagen_url}
-                onChange={e => setForm({...form, imagen_url: e.target.value})}
-                placeholder="https://ejemplo.com/foto-sushi.jpg"
-                className="w-full bg-neutral-950/60 border border-neutral-800 rounded-2xl px-4 py-3 text-sm focus:border-[#556B2F] focus:outline-none placeholder:text-neutral-600"
-              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                
+                {/* Botón táctil para seleccionar foto de la Galería */}
+                <label className="sm:col-span-2 relative flex items-center justify-center gap-2 p-4 border border-dashed border-neutral-700 hover:border-[#556B2F] rounded-2xl bg-neutral-950/40 cursor-pointer transition-colors group">
+                  {uploadingImage ? (
+                    <div className="flex items-center gap-2 text-xs text-[#8b9e69]">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Subiendo foto a Supabase...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-neutral-300 group-hover:text-white">
+                      <Upload className="w-4 h-4 text-[#8b9e69]" />
+                      <span>Seleccionar foto desde la Galería</span>
+                    </div>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="hidden" 
+                  />
+                </label>
+
+                {/* Vista previa de la imagen cargada */}
+                {form.imagen_url ? (
+                  <div className="relative w-full h-20 rounded-2xl overflow-hidden border border-neutral-700 bg-neutral-950 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.imagen_url} alt="Previsualización" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, imagen_url: '' }))}
+                      className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-black rounded-full text-white"
+                      title="Quitar foto"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full h-20 rounded-2xl border border-neutral-800 bg-neutral-950/30 flex flex-col items-center justify-center text-[11px] text-neutral-600">
+                    <span>Sin foto</span>
+                  </div>
+                )}
+
+              </div>
             </div>
 
             <div className="md:col-span-2 space-y-1.5">
@@ -296,7 +372,8 @@ export default function AdminPage() {
             <div className="md:col-span-2">
               <button 
                 type="submit"
-                className="w-full py-3.5 rounded-2xl bg-[#556B2F] hover:bg-[#4a5f28] text-white font-medium text-xs tracking-wider uppercase transition-all shadow-lg shadow-[#556B2F]/30"
+                disabled={uploadingImage}
+                className="w-full py-3.5 rounded-2xl bg-[#556B2F] hover:bg-[#4a5f28] disabled:opacity-50 text-white font-medium text-xs tracking-wider uppercase transition-all shadow-lg shadow-[#556B2F]/30"
               >
                 {editandoId ? 'Guardar Cambios del Plato' : 'Añadir al Menú'}
               </button>
@@ -319,11 +396,22 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {productos.map(prod => (
                 <div key={prod.id} className="flex justify-between items-center p-4 rounded-3xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
-                  <div className="space-y-1 min-w-0 pr-4">
-                    <span className="text-[10px] text-[#8b9e69] uppercase font-bold tracking-wider">{prod.categoria}</span>
-                    <h3 className="text-sm font-semibold text-white truncate">{prod.nombre}</h3>
-                    <p className="text-xs text-neutral-400">${prod.precio.toLocaleString('es-CO')}</p>
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                    {prod.imagen_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={prod.imagen_url} alt={prod.nombre} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-neutral-800" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-neutral-800/50 flex items-center justify-center shrink-0 border border-neutral-800 text-neutral-600">
+                        <ImageIcon className="w-5 h-5" />
+                      </div>
+                    )}
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="text-[10px] text-[#8b9e69] uppercase font-bold tracking-wider">{prod.categoria}</span>
+                      <h3 className="text-sm font-semibold text-white truncate">{prod.nombre}</h3>
+                      <p className="text-xs text-neutral-400">${prod.precio.toLocaleString('es-CO')}</p>
+                    </div>
                   </div>
+
                   <div className="flex items-center gap-2 shrink-0">
                     <button 
                       onClick={() => cargarParaEditar(prod)}
