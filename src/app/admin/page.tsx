@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { Lock, Plus, Trash2, Edit3, ArrowLeft, Utensils, ShieldCheck, X } from 'lucide-react';
+import { Lock, Plus, Trash2, Edit3, ArrowLeft, X, Image as ImageIcon } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [productos, setProductos] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Formulario para crear / editar producto
+  // Formulario para crear / editar producto (con imagen_url incluido)
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
     nombre: '',
@@ -39,7 +39,7 @@ export default function AdminPage() {
     max_proteinas: '2'
   });
 
-  const PASSWORD_ADMIN = 'toshiko2026'; // Clave de acceso del negocio
+  const PASSWORD_ADMIN = 'toshiko2026';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +67,7 @@ export default function AdminPage() {
       descripcion: form.descripcion,
       precio: parseFloat(form.precio),
       categoria: form.categoria,
-      imagen_url: form.imagen_url || null,
+      imagen_url: form.imagen_url.trim() || null,
       max_proteinas: parseInt(form.max_proteinas) || 2
     };
 
@@ -96,9 +96,10 @@ export default function AdminPage() {
       descripcion: prod.descripcion || '',
       precio: prod.precio.toString(),
       categoria: prod.categoria || 'Sushi',
-      imagen_url: prod.imagen_url || '',
+      imagen_url: prod.imagen_url || '', // ¡Aquí estaba el detalle! Ahora carga la imagen existente
       max_proteinas: (prod.max_proteinas || 2).toString()
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube suavemente al formulario
   };
 
   const eliminarProducto = async (id: number) => {
@@ -121,12 +122,9 @@ export default function AdminPage() {
     setEditandoId(null);
   };
 
-  // 1. PANTALLA DE ACCESO (LOGIN) CON DISEÑO APPLE
   if (!autenticado) {
     return (
       <main className="min-h-screen bg-[#000000] text-white p-4 flex items-center justify-center relative overflow-hidden font-sans">
-        
-        {/* Aura ambiental verde oliva */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#556B2F]/10 rounded-full blur-[140px] pointer-events-none"></div>
 
         <div className="w-full max-w-sm relative z-10 space-y-6">
@@ -164,7 +162,6 @@ export default function AdminPage() {
               </button>
             </form>
 
-            {/* Botón de volver al menú principal solicitado */}
             <div className="pt-2 border-t border-neutral-800/80 text-center">
               <Link 
                 href="/menu"
@@ -181,18 +178,14 @@ export default function AdminPage() {
     );
   }
 
-  // 2. PANEL DE GESTIÓN (CRUD)
   return (
     <main className="min-h-screen bg-[#000000] text-white p-4 md:p-8 font-sans relative pb-24">
-      
-      {/* Aura ambiental */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#556B2F]/10 rounded-full blur-[140px]"></div>
       </div>
 
       <div className="max-w-4xl mx-auto relative z-10 space-y-8">
         
-        {/* Cabecera */}
         <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
           <Link 
             href="/menu"
@@ -276,6 +269,20 @@ export default function AdminPage() {
             </div>
 
             <div className="md:col-span-2 space-y-1.5">
+              <label className="text-[11px] text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-[#8b9e69]" />
+                <span>URL de la Imagen (Opcional)</span>
+              </label>
+              <input 
+                type="url"
+                value={form.imagen_url}
+                onChange={e => setForm({...form, imagen_url: e.target.value})}
+                placeholder="https://ejemplo.com/foto-sushi.jpg"
+                className="w-full bg-neutral-950/60 border border-neutral-800 rounded-2xl px-4 py-3 text-sm focus:border-[#556B2F] focus:outline-none placeholder:text-neutral-600"
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-[11px] text-neutral-400 uppercase tracking-wider">Descripción corta</label>
               <textarea 
                 rows={2}
@@ -291,7 +298,7 @@ export default function AdminPage() {
                 type="submit"
                 className="w-full py-3.5 rounded-2xl bg-[#556B2F] hover:bg-[#4a5f28] text-white font-medium text-xs tracking-wider uppercase transition-all shadow-lg shadow-[#556B2F]/30"
               >
-                {editandoId ? 'Guardar Cambios' : 'Añadir al Menú'}
+                {editandoId ? 'Guardar Cambios del Plato' : 'Añadir al Menú'}
               </button>
             </div>
 
@@ -321,7 +328,7 @@ export default function AdminPage() {
                     <button 
                       onClick={() => cargarParaEditar(prod)}
                       className="p-2 rounded-xl bg-neutral-800/60 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700/50 transition-colors"
-                      title="Editar"
+                      title="Editar plato e imagen"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
