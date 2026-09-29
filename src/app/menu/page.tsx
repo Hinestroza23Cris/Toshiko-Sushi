@@ -357,22 +357,22 @@ export default function MenuPage() {
     return (
       <div
         key={prod.id}
-        className="group flex flex-col justify-between gap-4 p-4 rounded-[28px] bg-neutral-900/50 border border-white/[0.06] backdrop-blur-xl hover:bg-neutral-800/50 hover:border-[#556B2F]/40 transition-all duration-500 ease-out"
+        className="group flex flex-col justify-between gap-4 p-5 rounded-[28px] bg-neutral-900/50 border border-white/[0.06] backdrop-blur-xl hover:bg-neutral-800/50 hover:border-[#556B2F]/40 transition-all duration-500 ease-out shadow-lg"
       >
         <div className="flex gap-4">
-          <div className="flex-1 min-w-0 space-y-1.5">
-            <h3 className="text-[15px] font-semibold leading-snug text-white group-hover:text-[#8b9e69] transition-colors">
+          <div className="flex-1 min-w-0 space-y-2">
+            <h3 className="text-base font-semibold leading-snug text-white group-hover:text-[#8b9e69] transition-colors">
               {prod.nombre}
             </h3>
-            <p className="text-xs text-neutral-400 line-clamp-3 leading-relaxed">
-              {prod.descripcion || 'Especialidad de la casa preparada al instante.'}
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              {prod.descripcion || 'Especialidad de la casa preparada al instante con los mejores ingredientes.'}
             </p>
-            {pista && <p className="text-[11px] text-[#8b9e69]">{pista}</p>}
+            {pista && <p className="text-[11px] text-[#8b9e69] font-medium">{pista}</p>}
           </div>
           <FotoProducto url={prod.imagen_url} alt={prod.nombre} />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
           <span className="text-sm font-semibold text-[#8b9e69]">{formatear(prod.precio)}</span>
           <button
             onClick={() => manejarAnadir(prod)}
